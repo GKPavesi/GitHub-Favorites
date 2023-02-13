@@ -5,26 +5,29 @@ class Favorites {
     }
 
     load() {
-        this.entries = [
-            {
-                login: "maykbrito",
-                name: "Mayk Brito",
-                public_repos: '76',
-                followers: '9589'
-            },
-            {
-                login: "diego3g",
-                name: "Diego Fernandes",
-                public_repos: '48',
-                followers: '22503'
-            }
-        ]
+
+        const entries = JSON.parse(localStorage.getItem("@github-favorites:")) || [];
+        console.log(entries)
+
+        // this.entries = [
+        //     {
+        //         login: "maykbrito",
+        //         name: "Mayk Brito",
+        //         public_repos: '76',
+        //         followers: '9589'
+        //     },
+        //     {
+        //         login: "diego3g",
+        //         name: "Diego Fernandes",
+        //         public_repos: '48',
+        //         followers: '22503'
+        //     }
+        // ]
     }
 
     delete(user) {
-        const filteredEntries = this.entries.filter(entry => entry.login !== user.login);
-
-        this.entries = filteredEntries;
+        this.entries = this.entries.filter(entry => entry.login !== user.login);
+        this.update();
     }
 }
 
@@ -46,7 +49,6 @@ class FavoritesView extends Favorites {
                 const isOkToDelete = confirm("Tem certeza que deseja deletar essa linha?");
                 if (isOkToDelete) {
                     this.delete(user);
-                    this.update();
                 }
             }
             this.tbody.append(row)
