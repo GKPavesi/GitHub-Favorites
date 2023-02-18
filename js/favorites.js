@@ -1,3 +1,5 @@
+import { GitHubUser } from "./githubuser.js";
+
 class Favorites {
     constructor(root) {
         this.root = document.querySelector(root);
@@ -5,29 +7,39 @@ class Favorites {
     }
 
     load() {
+        this.entries = JSON.parse(localStorage.getItem("@github-favorites:")) || [];
+    }
 
-        const entries = JSON.parse(localStorage.getItem("@github-favorites:")) || [];
-        console.log(entries)
+    save() {
+        localStorage.setItem('@github-favorites:', JSON.stringify(this.entries));
+    }
 
-        // this.entries = [
-        //     {
-        //         login: "maykbrito",
-        //         name: "Mayk Brito",
-        //         public_repos: '76',
-        //         followers: '9589'
-        //     },
-        //     {
-        //         login: "diego3g",
-        //         name: "Diego Fernandes",
-        //         public_repos: '48',
-        //         followers: '22503'
-        //     }
-        // ]
+    async add(username) {
+        try {
+
+            const userExists = this.entries.find(entry => entry.login.toLowerCase() == username.toLowerCase())
+
+            if (userExists) {
+                throw new Error("Usuário já cadastrado")
+            }
+
+            const user = await GitHubUser.search(username)
+            
+            if (user.login == undefined) {
+                throw new Error("Usuário não encontrado")
+            }
+            this.entries = [user, ...this.entries];
+            this.update();
+            this.save();
+        } catch (error) {
+            alert(error.message)
+        }
     }
 
     delete(user) {
         this.entries = this.entries.filter(entry => entry.login !== user.login);
         this.update();
+        this.save();
     }
 }
 
@@ -38,6 +50,18 @@ class FavoritesView extends Favorites {
         this.tbody = this.root.querySelector("table tbody")
 
         this.update();
+        this.onAdd();
+    }
+
+    onAdd() {
+        const addButton = this.root.querySelector(".search button")
+        addButton.onclick = () => {
+            const { value } = this.root.querySelector(".search input")
+            addButton.disabled = true;
+            this.add(value).then(() => {
+                addButton.disabled = false;
+            })
+        }
     }
 
     update() {
@@ -91,4 +115,4 @@ class FavoritesView extends Favorites {
 
 }
 
-export { Favorites, FavoritesView }
+export { FavoritesView }
